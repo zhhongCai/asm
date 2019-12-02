@@ -1,0 +1,226 @@
+@startuml
+
+interface Opcodes
+
+class ClassReader {
+  + void accept(final ClassVisitor, final Attribute[], final int)
+}
+
+abstract class ClassVisitor {
+  # cv ClassVisitor
+
+  + visit(final int, final int, final String, final String, final String, final String[])
+  + visitSource(final String, final String)
+  + visitModule(final String, final int, final String) ModuleVisitor
+  + visitNestHost(final String)
+  + visitOuterClass(final String, final String, final String)
+  + visitAnnotation(final String, final boolean) AnnotationVisitor
+  + visitTypeAnnotation(final int, final TypePath, final String, final boolean) AnnotationVisitor
+  + visitAttribute(final Attribute)
+  + visitNestMember(final String)
+  + visitPermittedSubtypeExperimental(final String)
+  + visitInnerClass(final String, final String, final String, final int)
+  + visitRecordComponentExperimental(final int, final String, final String, final String) RecordComponentVisitor
+  + visitField(final int, final String, final String, final String, final Object) FieldVisitor
+  + visitMethod(final int, final String, final String, final String, final String[]) MethodVisitor
+  + visitEnd()
+}
+
+note top of ClassVisitor
+方法的调用顺序： visit -> visitSource -> visitModule -> visitNestHost -> visitPermittedSubtype
+ -> visitOuterClass -> visitAnnotation-> visitTypeAnnotation -> visitAttribute
+ -> visitNestMember -> visitInnerClass -> visitField -> visitMethod -> visitEnd
+end note
+
+class ClassWriter extends ClassVisitor {
+}
+
+abstract class FieldVisitor {
+  + visitAnnotation(final String, final boolean) AnnotationVisitor
+  + visitTypeAnnotation(final int, final TypePath, final String, final boolean) AnnotationVisitor
+  + visitAttribute(final Attribute)
+  + visitEnd()
+}
+
+note top of FieldVisitor
+方法的调用顺序： visitAnnotation -> visitTypeAnnotation -> visitAttribute -> visitEnd
+end note
+
+class FieldWriter extends FieldVisitor {
+}
+
+abstract class MethodVisitor {
+  # mv MethodVisitor
+
+  + visitParameter(final String, final int)
+  + visitAnnotationDefault() AnnotationVisitor
+  + visitAnnotation(final String, final boolean) AnnotationVisitor
+  + visitTypeAnnotation(final int, final TypePath, final String, final boolean) AnnotationVisitor
+  + visitAnnotableParameterCount(final int, final boolean)
+  + visitParameterAnnotation(final int, final String, final boolean) AnnotationVisitor
+  + visitAttribute(final Attribute)
+  + visitCode()
+  + visitFrame(final int, final int, final Object[], final int, final Object[])
+  + visitInsn(final int)
+  + visitIntInsn(final int, final int)
+  + visitVarInsn(final int, final int)
+  + visitTypeInsn(final int, final String)
+  + visitFieldInsn(final int, final String, final String, final String)
+  + visitMethodInsn(final int, final String, final String, final String)
+  + visitMethodInsn(final int, final String, final String, final String, final boolean)
+  + visitInvokeDynamicInsn(final String, final String, final Handle,final Object...)
+  + visitJumpInsn(final int, final Label)
+  + visitLabel(final Label)
+  + visitLdcInsn(final Object)
+  + visitIincInsn(final int, final int)
+  + visitTableSwitchInsn(final int, final int, final Label, final Label...)
+  + visitLookupSwitchInsn(final Label, final int[], final Label[])
+  + visitMultiANewArrayInsn(final String, final int)
+  + visitInsnAnnotation(final int, final TypePath, final String, final boolean) AnnotationVisitor
+  + visitTryCatchBlock(final Label, final Label, final Label, final String)
+  + visitTryCatchAnnotation(final int, final TypePath, final String, final boolean) AnnotationVisitor
+  + visitLocalVariable(final String, final String, final String, final Label, final Label, final int)
+  + visitLocalVariableAnnotation(final int, final TypePath, final Label[], final Label[], final int[], final String, final boolean) AnnotationVisitor
+  + visitLineNumber(final int, final Label)
+  + visitMaxs(final int, final int)
+  + visitEnd()
+}
+
+class MethodWriter extends MethodVisitor {
+}
+
+abstract class ModuleVisitor {
+  # mv ModuleVisitor
+
+  + visitMainClass(final String)
+  + visitPackage(final String)
+  + visitRequire(final String, final int, final String)
+  + visitExport(final String, final int, final String...)
+  + visitOpen(final String, final int, final String... )
+  + visitUse(final String)
+  + visitProvide(final String, final String...)
+  + visitEnd()
+}
+
+class ModuleWriter extends ModuleVisitor {
+}
+
+abstract class AnnotationVisitor {
+  # av AnnotationVisitor
+
+  + visit(final String, final Object)
+  + visitEnum(final String, final String, final String)
+  + visitAnnotation(final String, final String) AnnotationVisitor
+  + AnnotationVisitor visitArray(final String)
+  + visitEnd()
+}
+
+class AnnotationWriter extends AnnotationVisitor {
+}
+
+class Symbol {
+}
+
+class Type {
+}
+
+class SymbolTable {
+}
+
+class Context {
+}
+
+class Handle {
+}
+
+Class Handler {
+}
+
+class TypePath {
+}
+
+class TypeReference {
+}
+
+class Edge {
+  # final info int
+  # final successor Label
+  # nextEdge Edge
+}
+note top of Edge
+  方法的控制流图中的一条(有向)边.图中的每个节点都是一个基本块(一段连续的指令代码组成),
+  以基本块的第一个指令对应的Label表示.每条边从一个节点到另一个节点,比如,从一个代码块
+  到另一个代码块(也称作前驱或后继块).一条边对应一个jump或ret指令或一个异常句柄.
+
+  info取值：如果ClassWriter.COMPUTE_MAXS被使用,边对应的是一个jump指令时为栈的大小delta,对
+  应边是一个异常句柄时为Edge.EXCEPTION. delta = jump指令之后的栈大小 - 前驱基本块的开始处的栈大小 ？？？
+
+  successor: 后继基本块
+  nextEdge: 基本块出去的边中的下一条边,Label.outgoingEdges
+end note
+
+class Label {
+  + info Object: ams tree包用到，MethodNode.getLabelNode必须覆盖
+  + flags short: label或对应的基本块的类型或状态.
+  - lineNumber short: label对应的原代码行号或为0.如果有多个行号,\n第一个存在此字段,其他的存在otherLineNumbers
+  - otherLineNumbers int[]: label对应的原代码行号或为null.如果有\n多个行号,数组第一个元素标识数组包含元素个数(从索引1到n(含))
+  - forwardReferences int[]: label向前的引用.第一个元素表示元素个\n数的2倍.每个向前引用由sourceInsnBytecodeOffset(包含该向前引用的\n指令的字节码偏移量)和reference(该引用的类型和偏移量)组成.
+  # bytecodeOffset int: 这个label在他的方法字节的偏移量,单位字节.\nFLAG_RESOLVED位被设置时才被设置
+  # inputStackSize short: label对应的基本代码块的入栈的元素的数量
+  # outputStackSize short: lable对应的基本代码块的出栈的元素的数量.\nret指令结束的代码块才会被计算
+  # outputStackMax short: 出栈可以达到的最大高度,和入栈的栈顶相关.\n为null或正数
+  # subroutineId short: 这个代码块所属的子程序的id或为0.如果代码块\n属于多个子程序,这个id是最老的所属的子程序的id
+  # frame Frame: label对应的基本块的输入输出栈映射帧.\n MethodWriter.COMPUTE_ALL_FRAMES或\nMethodWriter.COMPUTE_INSERTED_FRAMES选项启用时才有用
+  # nextBasicBlock Label: 当前label的后继label,按MethodVisitor.visitLabel\n中的访问顺序.不含debug的label. 如果MethodWriter.COMPUTE_ALL_FRAMES或\nMethodWriter.COMPUTE_INSERTED_FRAMES选项启用\n不包含任何后继labels
+  # outgoingEdges Edge: 基本块出去的一条边.链表形式存储,通过Edge.nextEdge字段链接
+  # nextListElement Label: label所属的链表的下个元素
+
+}
+note top of Label
+  方法字节码的一个位置.jump,goto和switch指令,try catch块使用.
+end note
+
+class ConstantDynamic {
+}
+
+class Frame {
+}
+note top of Frame
+  基本块的输入输出栈映射帧
+  通过两步计算而来：
+  1. 当在MethodWriter中访问每一条指令时,当前基本块结尾处的帧的状态是由指令在前一个输出帧状态上模拟执行来更新的
+  2. 所有指令都被访问后，MethodWriter使用一个修复算法来计算每个基本块的输入帧（基本块起始处的栈映射帧,见MethodWriter.computeAllFrame()
+
+  输出栈映射帧的计算和输入帧相关,当计算时输入帧还是未知的.因此需要抽象类型,比如"输入帧x未知处的类型"或"输入帧栈顶的类型",
+
+  以后本地变量和输入输出帧的操作数包含的值被称为"抽象类型".一个抽象类型用4个字段DIM, KIND, FLAGS and VALUE, 在一个int值中表示:
+   =====================================
+   |...DIM|KIND|.F|...............VALUE|
+   =====================================
+  DIM: 6bits,-32到31,可以根据DIM_MASK和右移DIM_SHIFT来获取
+  KIND: 4bits,表示值的类型.可以根据KIND_MASK获取,必须为CONSTANT_KIND,REFERENCE_KIND,UNINITIALIZED_KIND,LOCAL_KIND,STACK_KIND之一.
+  FLAGS: 2bits, 包含2个boolean标志.当前只是有一个: TOP_IF_LONG_OR_DOUBLE_FLAG
+  VALUE: 20bits,包含：
+    如果KIND为CONSTANT_KIND,为 ITEM_TOP, ITEM_ASM_BOOLEAN, ITEM_ASM_BYTE, ITEM_ASM_CHAR or ITEM_ASM_SHORT,
+    ITEM_INTEGER, ITEM_FLOAT, ITEM_LONG, ITEM_DOUBLE ,ITEM_NULL or ITEM_UNINITIALIZED_THIS之一.
+    如果KIND为REFERENCE_KIND,为一个类型表中的TYPE_TAG符号在SymbolTable的索引.
+    如果KIND为UNINITIALIZED_KIND,为一个类型表中的UNINITIALIZED_TYPE_TAG符号在SymbolTable的索引.
+    如果KIND为LOCAL_KIND,为一个本地变量在输入栈帧的的索引.
+    如果KIND为STACK_KIND,为一个到输入栈帧的栈顶的相对位置的索引.
+
+end note
+
+
+class CurrentFrame extends Frame {
+}
+
+ClassVisitor *--> ClassVisitor: cv
+MethodVisitor *--> MethodVisitor: mv
+Edge *--> Edge: nextEdge
+Edge *--> Label: successor
+ClassVisitor <... ClassReader: accept(ClassVisitor,...)
+
+
+
+
+@enduml

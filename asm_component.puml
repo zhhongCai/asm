@@ -1,0 +1,57 @@
+@startuml
+
+package "ams.jar" as "asm" {
+[org.objectweb.asm]
+[org.objectweb.asm.signature]
+}
+note right of asm
+the event based API,提供类的
+解析和写入组件
+end note
+
+package "asm-util.jar" as "util" {
+[org.objectweb.asm.util]
+}
+note bottom of util
+提供各种基于core API的
+工具类，可以用来开发、调试asm应用
+end note
+
+package "asm-commons.jar" as "commons" {
+[org.objectweb.asm.commons]
+}
+note bottom of commons
+提供预定义的基于core api的
+类转换器
+end note
+
+package "asm-tree.jar" as "tree" {
+[org.objectweb.asm.tree]
+}
+note bottom of tree
+object based api,提供用来转换
+基于事件和基于对象的表示的工具
+end note
+
+package "asm-analysis.jar" as "analysis" {
+[org.objectweb.asm.tree.analysis]
+}
+note bottom of analysis
+提供类分析框架和一些预定义的基于tree api的类分析器
+end note
+
+[org.objectweb.asm] <..  [org.objectweb.asm.signature]
+[org.objectweb.asm] <..  [org.objectweb.asm.tree]
+[org.objectweb.asm] <..  [org.objectweb.asm.commons]
+[org.objectweb.asm.signature] <..  [org.objectweb.asm.commons]
+[org.objectweb.asm] <..  [org.objectweb.asm.util]
+[org.objectweb.asm.signature] <..  [org.objectweb.asm.util]
+[org.objectweb.asm.tree] <..  [org.objectweb.asm.tree.analysis]
+[org.objectweb.asm] <..  [org.objectweb.asm.xml]
+
+note left of [org.objectweb.asm.xml]
+已废弃. 提供类和XML的互相转换
+end note
+
+
+@enduml
