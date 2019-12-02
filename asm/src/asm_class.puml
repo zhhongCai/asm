@@ -2,6 +2,15 @@
 
 interface Opcodes
 
+class Attribute {
+ + type String
+ - content byte[]
+ # nextAttribute Attribute
+}
+note top of Attribute
+一个非标准的类,字段,方法或代码的属性
+end note
+
 class ClassReader {
   + void accept(final ClassVisitor, final Attribute[], final int)
 }
@@ -118,23 +127,90 @@ abstract class AnnotationVisitor {
 class AnnotationWriter extends AnnotationVisitor {
 }
 
-class Symbol {
+abstract class Symbol {
+  # index int
+  # tag int: 标识此symbol的类型
+  # owner String
+  # name String
+  # value String
+  # data long
+  # info int
 }
+note top of Symbol
+一个常量池记录或启动方法属性记录或ASM指定的类型表记录.
+end note
 
 class Type {
+  - sort int
+  - valueBuffer String
+  - valueBegin int
+  -valueEnd int
+
 }
+note top of Type
+一个java字段或方法类型
+end note
 
 class SymbolTable {
+  # classWriter ClassWriter
+  - final sourceClassReader
+  - majorVersion int
+  - className String
+  - entryCount int
+  - entries Entry[]
+  - constantPoolCount int
+  - constantPool ByteVector
+  - bootstrapMethodCount int
+  - bootstrapMethods ByteVector
+  - typeCount int
+  - typeTable Entry[]
 }
+class SymbolTable.Entry extends Symbol {
+    # hashCode int
+    # next Entry
+}
+
+note top of SymbolTable
+一个类的常量池记录、启动方法属性记录、ASM指定的类型表记录
+end note
 
 class Context {
+  # attributePrototypes Attribute[]
+  # parsingOptions int
+  # charBuffer char[]
+  # currentMethodAccessFlags int
+  # currentMethodName String
+  # currentMethodDescriptor String
+  # currentMethodLabels Label[]
+  # currentTypeAnnotationTarget int
+
 }
+note top of Context
+一个被传给ClassReader的类的信息
+end note
 
 class Handle {
+  - tag int
+  - owner String      b
+  - name String
+  - descriptor String
+  - isInterface boolean
 }
+note top of Handle
+一个字段或方法的引用
+end note
 
 Class Handler {
+  # startPc Label
+  # endPc Label
+  # handlerPc Label
+  # catchType int
+  # catchTypeDescriptor String
+  # nextHandler Handler
 }
+note top of Handler
+异常句柄的信息. 对应代码属性的异常表数组的一个元素
+end note
 
 class TypePath {
 }
@@ -181,9 +257,26 @@ note top of Label
 end note
 
 class ConstantDynamic {
+  - name String
+  - descriptor String
+  - bootstrapMethod Handle
+  - bootstrapMethodArguments Object
 }
+note top of ConstantDynamic
+一个在运行时由一个启动方法计算的常量
+end note
 
 class Frame {
+  # owner Label: 对应的基本块
+  - inputLocals int[]: 本地输入栈映射帧,抽象类型数组
+  - inputStack int[]: 输入栈映射帧栈,抽象类型数组
+  - outputLocals int[]: 本地输出栈映射帧,抽象类型数组
+  - outputStack int[]: 输出栈映射帧栈,抽象类型数组
+  - outputStackStart short: 输出栈的起始位置,相对于输入栈.为负数或null.\nnull表示输入栈必须追加到输入栈.负数-n表示前n个输出栈元素\n必须替换输入栈的栈顶元素,这样其它元素可以被追加到输入栈中
+  - outputStackTop short: outputStack的栈顶索引
+  - initializationCount int: 类型为初始化基本块的数量
+  - initializations int[]:
+
 }
 note top of Frame
   基本块的输入输出栈映射帧
@@ -208,6 +301,12 @@ note top of Frame
     如果KIND为LOCAL_KIND,为一个本地变量在输入栈帧的的索引.
     如果KIND为STACK_KIND,为一个到输入栈帧的栈顶的相对位置的索引.
 
+end note
+
+class ByteVector {
+}
+note top of ByteVector
+可动态扩展的字节向量. 粗略等效于在ByteArrayOutputStream之上的DataOutputStream,但更高效
 end note
 
 
